@@ -1,22 +1,36 @@
 from bs4 import BeautifulSoup
+from urllib import urlopen
 
 import grequests
 import warnings
 import time
 
+from models import Article
+
 MAX_CONC_ARTICLES = 20
+BANNED_ARTICLES = ["Main_Page"]
+
+def article_from_title(title):
+    article = Article.objects.filter(title=title)
+    if article.count() != 1:
+        article = Article(title=title, downloaded=False)
+        article.save()
+    else:
+        article = article[0]
+    return article
 
 def url_from_title(title):
     return "http://en.wikipedia.org/wiki/" + title
 
 def get_titles_from_html(html):
-    article = BeautifulSoup(html, 'html.parser')
+    article_html = BeautifulSoup(html, 'html.parser')
     titles = []
-    for a in article.find_all('a'):
+    for a in article_html.find_all('a'):
         href = a.get("href")
         if href:
-            if href[:6] == "/wiki/" and not ":" in href and not href[6:] in titles:
-                titles.append(href[6:])
+            new_title = href[6:]
+            if href[:6] == "/wiki/" and not ":" in href and not new_title in BANNED_ARTICLES and not new_title in titles:
+                titles.append(new_title)
     return titles
 
 def load_pages_from_titles(titles):
@@ -40,3 +54,39 @@ def load_pages_from_titles(titles):
             time.sleep(2.0)
             
     return html_by_title
+
+def download_all_linked_articles(source):
+    titles = [str(x) for x in source.linked_articles.filter(downloaded=False)]
+    html_by_title = load_pages_from_titles(titles)
+    for article_title, article_html in html_by_title.items():
+        article_titles = get_titles_from_html(article_html)
+        update_article(article_title, article_titles)
+        
+def update_article(article_title, titles):
+    article = article_from_title(article_title)
+    for title in titles:
+        new_article = article_from_title(title)
+        article.linked_articles.add(new_article)
+    if len(titles) > 0:
+        article.downloaded = True
+        article.save()
+            
+def get_paths_at_level(source, destination_title, num_levels):
+    if not source.downloaded:
+        source_html = urlopen(url_from_title(source.title))
+        update_article(source, get_titles_from_html(source_html))
+    if source.title == destination_title:
+        return [source.title]
+    elif destination_title in [str(x) for x in source.linked_articles.all()]:
+        return [source.title + " > " + destination_title]
+    elif num_levels == 0:
+        return []
+    else:
+        download_all_linked_articles(source)
+        result_paths = []
+        for article in source.linked_articles.all():
+            paths = get_paths_at_level(article, destination_title, num_levels - 1)
+            for path in paths:
+                result_paths.append((source.title + " > " + path))
+        return result_paths
+    
