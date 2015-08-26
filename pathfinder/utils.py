@@ -100,3 +100,13 @@ def get_paths_at_level(source, destination_title, num_levels):
                 result_paths.append((source.title + " > " + path))
         return result_paths
     
+def get_paths(source_title, destination_title):
+    source = article_from_title(source_title)
+    levels = 0
+    result = []
+    while len(result) == 0:
+        paths = get_paths_at_level(source, destination_title, levels)
+        result += paths
+        levels += 1
+    return result
+    
