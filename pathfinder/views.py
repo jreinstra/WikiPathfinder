@@ -36,7 +36,7 @@ def check(request):
         if job.is_finished:
             return json_success(job.result)
         else:
-            return json_success("In progress")
+            return json_success("in progress")
     else:
         return json_failure("missing 'job_id' parameter")
     
