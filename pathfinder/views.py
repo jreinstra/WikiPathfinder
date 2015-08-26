@@ -7,17 +7,22 @@ from utils import *
 
 # Create your views here.
 def index(request):
+    from rq import Queue
+    from worker import conn
+    q = Queue(connection=conn)
+    
     result = []
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        level = 0
+        """level = 0
         result = []
         while len(result) == 0:
             source_article = article_from_title(source_title)
             paths = get_paths_at_level(source_article, destination_title, level)
             result += paths
-            level += 1
+            level += 1"""
+        result = q.enqueue(get_paths_at_level, source_article, destination_title, 1)
         return json_success(result)
     else:
         return json_failure("missing 'source' or 'destination' parameters")
