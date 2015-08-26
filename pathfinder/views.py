@@ -24,13 +24,13 @@ def find(request):
             paths = get_paths_at_level(source_article, destination_title, level)
             result += paths
             level += 1"""
-        job = q.enqueue(get_paths_at_level, source_article, destination_title, 1)
+        job = q.enqueue(get_paths_at_level, source_article, destination_title, 3)
         return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
     
 def check(request):
-    job_id = request.GET.get("id")
+    job_id = request.GET.get("job_id")
     if job_id:
         job = Job.fetch(job_id, connection=conn)
         if job.is_finished:
