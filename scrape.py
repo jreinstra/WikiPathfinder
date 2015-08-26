@@ -4,9 +4,9 @@ from wiki.wsgi import *
 from pathfinder.utils import *
 from pathfinder.models import Article
 
-source = Article.objects.get_or_create(title="Menlo_School")[0]
-destination = "Kevin_Bacon"
+source = Article.objects.get_or_create(title="Menlo School")[0]
+destination = "Stanford"
     
-paths = get_paths_at_level(source, destination, 2)
+paths = get_paths_at_level(source, destination, 1)
 print "\n".join(paths)
 print len(paths)

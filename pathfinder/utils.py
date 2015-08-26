@@ -4,6 +4,7 @@ from urllib import urlopen
 import grequests
 import warnings
 import time
+import json
 
 from models import Article
 
@@ -41,7 +42,7 @@ def load_pages_from_titles(titles):
         save_index = 0
         html_by_title = {}
         for x in range(0, len(urls), MAX_CONC_ARTICLES):
-            print ("Downloading %s-%s..." % (x, x+MAX_CONC_ARTICLES)),
+            print ("Downloading %s-%s of %s..." % (x, x+MAX_CONC_ARTICLES, len(urls)))
             rs = [grequests.get(u) for u in urls[x:x+MAX_CONC_ARTICLES]]
             results = grequests.map(rs, stream=False, size=MAX_CONC_ARTICLES)
             for result in results:
@@ -55,36 +56,44 @@ def load_pages_from_titles(titles):
             
     return html_by_title
 
-def download_all_linked_articles(source):
-    titles = [str(x) for x in source.linked_articles.filter(downloaded=False)]
+def download_all_linked_articles(titles):
+    articles = [article_from_title(title) for title in titles]
+    titles = [str(article) for article in articles if article.downloaded == False]
     html_by_title = load_pages_from_titles(titles)
+    
+    length = len(html_by_title.items())
+    i = 0
     for article_title, article_html in html_by_title.items():
         article_titles = get_titles_from_html(article_html)
         update_article(article_title, article_titles)
+        if i % 20 == 0:
+            print "Updated %s-%s of %s" % (i-20, i, length)
         
 def update_article(article_title, titles):
     article = article_from_title(article_title)
-    for title in titles:
-        new_article = article_from_title(title)
-        article.linked_articles.add(new_article)
-    if len(titles) > 0:
-        article.downloaded = True
-        article.save()
+    article.linked_articles = json.dumps(titles)
+    article.downloaded = True
+    article.save()
             
 def get_paths_at_level(source, destination_title, num_levels):
     if not source.downloaded:
         source_html = urlopen(url_from_title(source.title))
         update_article(source, get_titles_from_html(source_html))
+        source = article_from_title(source.title)
+        
+    source_titles = json.loads(source.linked_articles)
+    
     if source.title == destination_title:
         return [source.title]
-    elif destination_title in [str(x) for x in source.linked_articles.all()]:
+    elif destination_title in source_titles:
         return [source.title + " > " + destination_title]
     elif num_levels == 0:
         return []
     else:
-        download_all_linked_articles(source)
+        download_all_linked_articles(source_titles)
         result_paths = []
-        for article in source.linked_articles.all():
+        for title in source_titles:
+            article = article_from_title(title)
             paths = get_paths_at_level(article, destination_title, num_levels - 1)
             for path in paths:
                 result_paths.append((source.title + " > " + path))
