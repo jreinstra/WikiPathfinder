@@ -15,10 +15,10 @@ def index(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        """level = 0
-        result = []
+        source_article = article_from_title(source_title)
+        level = 0
+        """result = []
         while len(result) == 0:
-            source_article = article_from_title(source_title)
             paths = get_paths_at_level(source_article, destination_title, level)
             result += paths
             level += 1"""
