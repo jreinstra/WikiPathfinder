@@ -8,7 +8,7 @@ from utils import *
 # Create your views here.
 def index(request):
     from rq import Queue
-    from worker import conn
+    from tasks.worker import conn
     q = Queue(connection=conn)
     
     result = []
