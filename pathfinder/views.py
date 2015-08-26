@@ -10,7 +10,7 @@ import json
 from utils import *
 
 # Create your views here.
-def index(request):
+def find(request):
     q = Queue(connection=conn)
     
     result = []
@@ -28,6 +28,17 @@ def index(request):
         return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
+    
+def check(request):
+    job_id = request.GET.get("id")
+    if job_id:
+        job = Job.fetch(job_id, connection=conn)
+        if job.is_finished:
+            return json_success(job.result)
+        else:
+            return json_success("In progress")
+    else:
+        return json_failure("missing 'job_id' parameter")
     
 def json_success(data):
     return HttpResponse(json.dumps({"success":True, "result":data}))
