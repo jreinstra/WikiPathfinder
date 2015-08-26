@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+from rq import Queue
+from rq.job import Job
+from tasks.worker import conn
+
 import json
 
 from utils import *
 
 # Create your views here.
 def index(request):
-    from rq import Queue
-    from tasks.worker import conn
     q = Queue(connection=conn)
     
     result = []
@@ -22,8 +24,8 @@ def index(request):
             paths = get_paths_at_level(source_article, destination_title, level)
             result += paths
             level += 1"""
-        result = q.enqueue(get_paths_at_level, source_article, destination_title, 1)
-        return json_success(result)
+        job = q.enqueue(get_paths_at_level, source_article, destination_title, 1)
+        return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
     

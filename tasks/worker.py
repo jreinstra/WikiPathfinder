@@ -1,3 +1,4 @@
+from wiki.wsgi import *
 import os
 
 import redis
