@@ -1,8 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-from urllib import urlopen
-
 import json
 
 from utils import *
@@ -10,17 +8,17 @@ from utils import *
 # Create your views here.
 def index(request):
     result = []
-    source = request.GET.get("source")
-    destination = request.GET.get("destination")
-    if source and destination:
-        source_html = urlopen(url_from_title(source))
-        found = False
+    source_title = request.GET.get("source")
+    destination_title = request.GET.get("destination")
+    if source_title and destination_title:
         level = 0
-        while not found:
-            paths = get_paths_at_level(source, source_html, destination, level, "")
-            result.append(paths)
-            found = found or len(paths) > 0
+        result = []
+        while len(result) == 0:
+            source_article = article_from_title(source_title)
+            paths = get_paths_at_level(source_article, destination_title, level)
+            result += paths
             level += 1
+        return json_success(result)
     else:
         return json_failure("missing 'source' or 'destination' parameters")
     

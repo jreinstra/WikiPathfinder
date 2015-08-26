@@ -62,12 +62,13 @@ def download_all_linked_articles(titles):
     html_by_title = load_pages_from_titles(titles)
     
     length = len(html_by_title.items())
-    i = 0
+    i = 1
     for article_title, article_html in html_by_title.items():
         article_titles = get_titles_from_html(article_html)
         update_article(article_title, article_titles)
         if i % 20 == 0:
             print "Updated %s-%s of %s" % (i-20, i, length)
+        i += 1
         
 def update_article(article_title, titles):
     article = article_from_title(article_title)
