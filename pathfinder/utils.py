@@ -98,11 +98,15 @@ def get_paths_at_level(source, destination_title, num_levels):
             source.save()
             
         result_paths = []
+        length = len(source_titles)
+        i = 1
         for title in source_titles:
             article = article_from_title(title)
             paths = get_paths_at_level(article, destination_title, num_levels - 1)
             for path in paths:
                 result_paths.append((source.title + " > " + path))
+            print num_levels, "-", i, title
+            i += 1
         return result_paths
     
 def get_paths(source_title, destination_title):

@@ -17,7 +17,7 @@ def find(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        job = q.enqueue(get_paths, source_title, destination_title)
+        job = q.enqueue(get_paths, source_title, destination_title, ttl=5000)
         return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
@@ -25,7 +25,10 @@ def find(request):
 def check(request):
     job_id = request.GET.get("job_id")
     if job_id:
-        job = Job.fetch(job_id, connection=conn)
+        try:
+            job = Job.fetch(job_id, connection=conn)
+        except Exception:
+            job = None
         if job:
             status = job.get_status()
             if status == JobStatus.FINISHED:
