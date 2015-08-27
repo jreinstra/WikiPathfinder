@@ -14,7 +14,7 @@ BANNED_ARTICLES = ["Main_Page"]
 def article_from_title(title):
     article = Article.objects.filter(title=title)
     if article.count() != 1:
-        article = Article(title=title, downloaded=False)
+        article = Article(title=title, downloaded=False, filled=False)
         article.save()
     else:
         article = article[0]
@@ -81,17 +81,22 @@ def get_paths_at_level(source, destination_title, num_levels):
         source_html = urlopen(url_from_title(source.title))
         update_article(source, get_titles_from_html(source_html))
         source = article_from_title(source.title)
-        
-    source_titles = json.loads(source.linked_articles)
     
-    if source.title == destination_title:
-        return [source.title]
-    elif destination_title in source_titles:
-        return [source.title + " > " + destination_title]
-    elif num_levels == 0:
-        return []
+    source_titles = json.loads(source.linked_articles)
+    if num_levels == 0:
+        source_titles = json.loads(source.linked_articles)
+        if source.title == destination_title:
+            return [source.title]
+        elif destination_title in source_titles:
+            return [source.title + " > " + destination_title]
+        else:
+            return []
     else:
-        download_all_linked_articles(source_titles)
+        if not source.filled:
+            download_all_linked_articles(source_titles)
+            source.filled = True
+            source.save()
+            
         result_paths = []
         for title in source_titles:
             article = article_from_title(title)
@@ -107,6 +112,7 @@ def get_paths(source_title, destination_title):
     while len(result) == 0:
         paths = get_paths_at_level(source, destination_title, levels)
         result += paths
+        print "Looked at level %s." % level
         levels += 1
     return result
     
