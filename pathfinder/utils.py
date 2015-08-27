@@ -105,7 +105,8 @@ def get_paths_at_level(source, destination_title, num_levels):
             paths = get_paths_at_level(article, destination_title, num_levels - 1)
             for path in paths:
                 result_paths.append((source.title + " > " + path))
-            print num_levels, "-", i, title
+            if num_levels >= 2:
+                print num_levels, "-", ("%s of %s" % (i, length)), title
             i += 1
         return result_paths
     
