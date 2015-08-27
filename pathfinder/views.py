@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from rq import Queue
-from rq.job import Job
+from rq.job import Job, JobStatus
 from tasks.worker import conn
 
 import json
@@ -26,10 +26,14 @@ def check(request):
     job_id = request.GET.get("job_id")
     if job_id:
         job = Job.fetch(job_id, connection=conn)
-        if job.is_finished:
-            return json_success(job.result)
+        if job:
+            status = job.get_status()
+            if status == JobStatus.FINISHED:
+                return json_success({"status":status, "output":job.result})
+            else:
+                return json_success({"status":status, "output":None})
         else:
-            return json_success("in progress")
+            return json_failure("job not found")
     else:
         return json_failure("missing 'job_id' parameter")
     
