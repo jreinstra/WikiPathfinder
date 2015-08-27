@@ -112,7 +112,7 @@ def get_paths(source_title, destination_title):
     while len(result) == 0:
         paths = get_paths_at_level(source, destination_title, levels)
         result += paths
-        print "Looked at level %s." % level
+        print "Looked at level %s." % levels
         levels += 1
     return result
     
