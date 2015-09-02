@@ -111,7 +111,7 @@ def get_paths_at_level(source, destination_title, num_levels, job):
                 result_paths.append((source.title + " > " + path))
             if job and num_levels >= 2:
                 percent_done = (100.0 * i) / length
-                job.set_status("%s%% done" % percent_done)
+                job.set_status("%.2f%% done" % percent_done)
                 print num_levels, "-", ("%s of %s" % (i, length)), title
             i += 1
         return result_paths
