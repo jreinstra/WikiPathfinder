@@ -18,7 +18,7 @@ def find(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        job_id = uuid.uuid4()
+        job_id = str(uuid.uuid4())
         job = q.enqueue_call(
             func=get_paths,
             args=(source_title, destination_title, job_id,),
