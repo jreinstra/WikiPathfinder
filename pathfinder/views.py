@@ -18,12 +18,13 @@ def find(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
+        job_id = uuid.uuid4()
         job = q.enqueue_call(
             func=get_paths,
-            args=(source_title, destination_title, self,),
+            args=(source_title, destination_title, job_id,),
             timeout=5000
         )
-        return json_success(job.get_id())
+        return json_success(job_id)
     else:
         return json_failure("missing 'source' or 'destination' parameters")
     

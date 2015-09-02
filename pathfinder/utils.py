@@ -1,6 +1,10 @@
 from bs4 import BeautifulSoup
 from urllib import urlopen
 
+# RQ stuff
+from tasks.worker import conn
+from rq.job import Job
+
 import grequests
 import warnings
 import time
@@ -112,7 +116,8 @@ def get_paths_at_level(source, destination_title, num_levels, job):
             i += 1
         return result_paths
     
-def get_paths(source_title, destination_title, job):
+def get_paths(source_title, destination_title, job_id):
+    job = Job.fetch(job_id, connection=conn)
     source = article_from_title(source_title)
     levels = 0
     result = []
