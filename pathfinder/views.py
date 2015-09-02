@@ -22,7 +22,8 @@ def find(request):
         job = q.enqueue_call(
             func=get_paths,
             args=(source_title, destination_title, job_id,),
-            timeout=5000
+            timeout=5000,
+            job_id=job_id
         )
         return json_success(job_id)
     else:
