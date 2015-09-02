@@ -17,7 +17,7 @@ def find(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        job = q.enqueue(get_paths, source_title, destination_title, ttl=5000)
+        job = q.enqueue(get_paths, source_title, destination_title, timeout=5000)
         return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
