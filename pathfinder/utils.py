@@ -76,7 +76,7 @@ def update_article(article_title, titles):
     article.downloaded = True
     article.save()
             
-def get_paths_at_level(source, destination_title, num_levels):
+def get_paths_at_level(source, destination_title, num_levels, job):
     if not source.downloaded:
         source_html = urlopen(url_from_title(source.title))
         update_article(source, get_titles_from_html(source_html))
@@ -102,20 +102,22 @@ def get_paths_at_level(source, destination_title, num_levels):
         i = 1
         for title in source_titles:
             article = article_from_title(title)
-            paths = get_paths_at_level(article, destination_title, num_levels - 1)
+            paths = get_paths_at_level(article, destination_title, num_levels - 1, None)
             for path in paths:
                 result_paths.append((source.title + " > " + path))
-            if num_levels >= 2:
+            if job and num_levels >= 2:
+                percent_done = (100.0 * i) / length
+                job.set_status("%s% done" % percent_done)
                 print num_levels, "-", ("%s of %s" % (i, length)), title
             i += 1
         return result_paths
     
-def get_paths(source_title, destination_title):
+def get_paths(source_title, destination_title, job):
     source = article_from_title(source_title)
     levels = 0
     result = []
-    while len(result) == 0:
-        paths = get_paths_at_level(source, destination_title, levels)
+    while len(result) == 0 and levels < 3:
+        paths = get_paths_at_level(source, destination_title, levels, job)
         result += paths
         print "Looked at level %s." % levels
         levels += 1

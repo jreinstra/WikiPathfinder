@@ -6,6 +6,7 @@ from rq.job import Job, JobStatus
 from tasks.worker import conn
 
 import json
+import uuid
 
 from utils import *
 
@@ -17,7 +18,11 @@ def find(request):
     source_title = request.GET.get("source")
     destination_title = request.GET.get("destination")
     if source_title and destination_title:
-        job = q.enqueue(get_paths, source_title, destination_title, timeout=5000)
+        job = q.enqueue_call(
+            func=get_paths,
+            args=(source_title, destination_title, self,),
+            timeout=5000
+        )
         return json_success(job.get_id())
     else:
         return json_failure("missing 'source' or 'destination' parameters")
