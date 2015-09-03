@@ -38,7 +38,7 @@ def get_titles_from_html(html):
                 titles.append(new_title)
     return titles
 
-def load_pages_from_titles(titles):
+def load_pages_from_titles(titles, job):
     urls = [url_from_title(title) for title in titles]
         
     with warnings.catch_warnings():
@@ -46,7 +46,9 @@ def load_pages_from_titles(titles):
         save_index = 0
         html_by_title = {}
         for x in range(0, len(urls), MAX_CONC_ARTICLES):
-            print ("Downloading %s-%s of %s..." % (x, x+MAX_CONC_ARTICLES, len(urls)))
+            update_string = "Downloading %s-%s of %s..." % (x, x+MAX_CONC_ARTICLES, len(urls))
+            job.set_status(update_string)
+            print (update_string)
             rs = [grequests.get(u) for u in urls[x:x+MAX_CONC_ARTICLES]]
             results = grequests.map(rs, stream=False, size=MAX_CONC_ARTICLES)
             for result in results:
@@ -60,10 +62,10 @@ def load_pages_from_titles(titles):
             
     return html_by_title
 
-def download_all_linked_articles(titles):
+def download_all_linked_articles(titles, job):
     articles = [article_from_title(title) for title in titles]
     titles = [str(article) for article in articles if article.downloaded == False]
-    html_by_title = load_pages_from_titles(titles)
+    html_by_title = load_pages_from_titles(titles, job)
     
     length = len(html_by_title.items())
     i = 1
@@ -71,7 +73,9 @@ def download_all_linked_articles(titles):
         article_titles = get_titles_from_html(article_html)
         update_article(article_title, article_titles)
         if i % 20 == 0:
-            print "Updated %s-%s of %s" % (i-20, i, length)
+            update_string = "Updated %s-%s of %s" % (i-20, i, length)
+            job.set_status(update_string)
+            print update_string
         i += 1
         
 def update_article(article_title, titles):
@@ -97,7 +101,7 @@ def get_paths_at_level(source, destination_title, num_levels, job):
             return []
     else:
         if not source.filled:
-            download_all_linked_articles(source_titles)
+            download_all_linked_articles(source_titles, job)
             source.filled = True
             source.save()
             
