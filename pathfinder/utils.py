@@ -47,7 +47,8 @@ def load_pages_from_titles(titles, job):
         html_by_title = {}
         for x in range(0, len(urls), MAX_CONC_ARTICLES):
             update_string = "Downloading %s-%s of %s..." % (x, x+MAX_CONC_ARTICLES, len(urls))
-            job.set_status(update_string)
+            if job:
+                job.set_status(update_string)
             print (update_string)
             rs = [grequests.get(u) for u in urls[x:x+MAX_CONC_ARTICLES]]
             results = grequests.map(rs, stream=False, size=MAX_CONC_ARTICLES)
@@ -74,7 +75,8 @@ def download_all_linked_articles(titles, job):
         update_article(article_title, article_titles)
         if i % 20 == 0:
             update_string = "Updated %s-%s of %s" % (i-20, i, length)
-            job.set_status(update_string)
+            if job:
+                job.set_status(update_string)
             print update_string
         i += 1
         
