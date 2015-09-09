@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from urllib import urlopen
 
 # RQ stuff
-from tasks.worker import conn
+from worker import conn
 from rq.job import Job
 
 # imports for utilities

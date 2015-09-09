@@ -5,7 +5,7 @@ from django.http import HttpResponse
 # imports related to background task queue
 from rq import Queue
 from rq.job import Job, JobStatus
-from tasks.worker import conn
+from worker import conn
 
 # imports for utilities
 import json
